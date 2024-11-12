@@ -1,0 +1,30 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=chat123@
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__Database=Data Source=sqlserver;Initial Catalog=Chat;User Id=sa;Password=chat123@;Encrypt=True;TrustServerCertificate=True
+    depends_on:
+      - sqlserver
+    command: >
+      /bin/bash -c "while ! nc -z sqlserver 1433; do sleep 1; done &&
+      dotnet ef database update &&
+      dotnet Chat.dll"
+
+
+volumes:
+  sqlserver_data:
