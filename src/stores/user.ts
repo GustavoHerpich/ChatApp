@@ -12,7 +12,7 @@ export const useUsers = defineStore("users", () => {
   }
 
   function saveUser(token: Token): void {
-    localStorage.setItem("token", `${token.token}`);
+    localStorage.setItem("token", token.token);
   }
 
   function getUserName(): string {
