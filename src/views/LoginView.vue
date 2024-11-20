@@ -76,7 +76,7 @@ export default {
     const showPassword = ref(false);
     const showLoginError = ref(false);
 
-    const loginReq = reactive(new Requester<{ value: Token }>(_chat));
+    const loginReq = reactive(new Requester<Token>(_chat));
 
     const rules = {
       required: (value: string) => !!value || "Campo obrigatório",
@@ -94,7 +94,8 @@ export default {
         data: { username: login, password: password },
         onSuccess: () => {
           if (loginReq.response) {
-            userStore.saveUser(loginReq.response.value);
+            const token = loginReq.response;
+            userStore.saveUser(token, login);
             router.push({ name: "home" });
           }
         },

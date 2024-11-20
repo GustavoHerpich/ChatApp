@@ -47,7 +47,6 @@ export default defineComponent({
 
     onMounted(async () => {
       const token = localStorage.getItem("token");
-
       if (token) {
         connection.value = new HubConnectionBuilder()
           .withUrl("http://localhost:8080/chathub", {
@@ -64,7 +63,6 @@ export default defineComponent({
     });
 
     const sendMessage = async () => {
-      console.log(receiver);
       if (message.value.trim() && connection.value) {
         await connection.value.invoke(
           "SendPrivateMessage",

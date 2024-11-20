@@ -94,7 +94,7 @@ export default {
     const showRegisterError = ref(false);
     const roles = ["Admin", "User"];
 
-    const registerReq = reactive(new Requester<{ value: Token }>(_chat));
+    const registerReq = reactive(new Requester<Token>(_chat));
 
     const rules = {
       required: (value: string) => !!value || "Campo obrigatório",
@@ -115,7 +115,7 @@ export default {
         },
         onSuccess: () => {
           if (registerReq.response) {
-            userStore.saveUser(registerReq.response.value);
+            userStore.saveUser(registerReq.response, username.value);
             router.push({ name: "login" });
           }
         },

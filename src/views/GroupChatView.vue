@@ -70,7 +70,7 @@ export default defineComponent({
     };
 
     const goBack = () => {
-      router.push({ name: "Home" });
+      router.push({ name: "home" });
     };
 
     return {

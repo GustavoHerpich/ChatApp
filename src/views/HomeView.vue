@@ -1,4 +1,5 @@
 <template>
+  <div>Bem-vindo, {{ userName }}</div>
   <v-container
     class="fill-height d-flex flex-column align-center justify-center"
   >
@@ -33,7 +34,6 @@
       </v-card-text>
     </v-card>
 
-    <!-- Modal para criação de grupo -->
     <v-dialog v-model="showGroupDialog" persistent max-width="500">
       <v-card>
         <v-card-title>
@@ -63,6 +63,7 @@
 import { defineComponent, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { HubConnectionBuilder } from "@aspnet/signalr";
+import { useUsers } from "@/stores/user";
 
 export default defineComponent({
   setup() {
@@ -71,6 +72,9 @@ export default defineComponent({
     const showGroupDialog = ref(false);
     const connection = ref<any>(null);
     const router = useRouter();
+    const userStore = useUsers();
+
+    const userName = userStore.getUserName();
 
     onMounted(async () => {
       const token = localStorage.getItem("token");
@@ -120,6 +124,7 @@ export default defineComponent({
 
     return {
       onlineUsers,
+      userName,
       startPrivateChat,
       showGroupDialog,
       selectedUsers,

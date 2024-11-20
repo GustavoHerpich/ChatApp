@@ -11,8 +11,11 @@ export const useUsers = defineStore("users", () => {
     localStorage.removeItem("token");
   }
 
-  function saveUser(token: Token): void {
+  function saveUser(token: Token, userName: string): void {
     localStorage.setItem("token", token.token);
+    if (user.value) {
+      user.value.username = userName;
+    }
   }
 
   function getUserName(): string {
