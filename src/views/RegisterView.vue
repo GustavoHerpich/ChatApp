@@ -77,9 +77,9 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useUsers } from "@/stores/user";
 import { _chat } from "@/plugins/axios";
-import Token from "@/models/user/Token";
 import Requester from "@/utils/requests/Requester";
 import { extractAxiosErrorMessage } from "@/utils/requests/Request";
+import UserAuthentication from "@/models/user/UserAuthentication";
 
 export default {
   setup() {
@@ -94,7 +94,7 @@ export default {
     const showRegisterError = ref(false);
     const roles = ["Admin", "User"];
 
-    const registerReq = reactive(new Requester<Token>(_chat));
+    const registerReq = reactive(new Requester<UserAuthentication>(_chat));
 
     const rules = {
       required: (value: string) => !!value || "Campo obrigatório",
@@ -115,7 +115,7 @@ export default {
         },
         onSuccess: () => {
           if (registerReq.response) {
-            userStore.saveUser(registerReq.response, username.value);
+            userStore.saveUser(registerReq.response);
             router.push({ name: "login" });
           }
         },

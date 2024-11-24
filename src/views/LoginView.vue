@@ -95,7 +95,7 @@ export default {
         onSuccess: () => {
           if (loginReq.response) {
             const token = loginReq.response;
-            userStore.saveUser(token, login);
+            userStore.saveToken(token);
             router.push({ name: "home" });
           }
         },

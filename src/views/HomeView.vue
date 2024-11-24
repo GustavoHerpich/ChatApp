@@ -22,6 +22,11 @@
             >
               <v-list-item-content>
                 <v-list-item-title>{{ user }}</v-list-item-title>
+                <v-badge
+                  v-if="unreadMessages[user]"
+                  color="primary"
+                  dot
+                ></v-badge>
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
@@ -64,6 +69,7 @@ import { defineComponent, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { HubConnectionBuilder } from "@aspnet/signalr";
 import { useUsers } from "@/stores/user";
+import { notify } from "notiwind";
 
 export default defineComponent({
   setup() {
@@ -73,6 +79,7 @@ export default defineComponent({
     const connection = ref<any>(null);
     const router = useRouter();
     const userStore = useUsers();
+    const unreadMessages = ref<{ [key: string]: number }>({});
 
     const userName = userStore.getUserName();
 
@@ -86,9 +93,24 @@ export default defineComponent({
           .build();
 
         await connection.value.start();
+
         connection.value.on("OnlineUsers", (users: string[]) => {
           onlineUsers.value = users;
         });
+
+        connection.value.on(
+          "NewConversationNotification",
+          (receiver: string | number) => {
+            notify({
+              title: "Nova Mensagem",
+              text: `Você recebeu uma nova mensagem de ${receiver}`,
+            });
+            if (!unreadMessages.value[receiver]) {
+              unreadMessages.value[receiver] = 0;
+            }
+            unreadMessages.value[receiver]++;
+          }
+        );
 
         await connection.value.invoke("GetOnlineUsers");
       } else {
@@ -97,7 +119,7 @@ export default defineComponent({
     });
 
     const startPrivateChat = (user: string) => {
-      console.log(user);
+      unreadMessages.value[user] = 0;
       router.push({ name: "privateChat", params: { user } });
     };
 
@@ -131,6 +153,7 @@ export default defineComponent({
       openGroupCreation,
       closeGroupDialog,
       createGroup,
+      unreadMessages,
     };
   },
 });
