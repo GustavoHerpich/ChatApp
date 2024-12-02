@@ -5,13 +5,11 @@ import UserAuthentication from "@/models/user/UserAuthentication";
 
 export const useUsers = defineStore("users", () => {
   const user = ref<UserAuthentication | null>(
-    JSON.parse(localStorage.getItem("user") || "null")
+    JSON.parse(localStorage.getItem("user") ?? "null")
   );
   const token = ref<string | null>(localStorage.getItem("token"));
-
   function saveUser(userAuth: UserAuthentication): Promise<void> {
     return new Promise((resolve) => {
-      console.log("Salvando usuario:", userAuth);
       user.value = userAuth;
       localStorage.setItem("user", JSON.stringify(userAuth));
       resolve();
@@ -30,8 +28,7 @@ export const useUsers = defineStore("users", () => {
   }
 
   function getUserName(): string {
-    console.log(user.value?.username);
-    return user.value?.username || "";
+    return user.value?.username ?? "";
   }
 
   return { user, token, saveUser, saveToken, logout, getUserName };

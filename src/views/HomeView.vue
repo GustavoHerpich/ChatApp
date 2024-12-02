@@ -27,7 +27,7 @@
                 <v-list-item-title>
                   {{ user }}
                   <span v-if="unreadMessages[user]" class="unread-badge">
-                    ({{ unreadMessages[user] }})
+                    {{ unreadMessages[user] }}
                   </span>
                 </v-list-item-title>
               </v-list-item-content>
@@ -41,7 +41,26 @@
         </v-list>
       </v-card-text>
     </v-card>
-
+    <v-card class="elevation-12" width="450">
+      <v-toolbar color="primary" dark flat>
+        <v-toolbar-title>Grupos</v-toolbar-title>
+      </v-toolbar>
+      <v-card-text>
+        <v-list>
+          <v-list-item-group v-if="userGroups.length">
+            <v-list-item
+              v-for="group in userGroups"
+              :key="group"
+              @click="openGroupChat(group)"
+            >
+              <v-list-item-content>
+                <v-list-item-title>{{ group }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </v-card-text>
+    </v-card>
     <v-dialog v-model="showGroupDialog" persistent max-width="500">
       <v-card>
         <v-card-title>
@@ -88,7 +107,7 @@ export default defineComponent({
     const router = useRouter();
     const userStore = useUsers();
     const unreadMessages = ref<{ [key: string]: number }>({});
-
+    const userGroups = ref<string[]>([]);
     const userName = userStore.getUserName();
 
     onMounted(async () => {
@@ -122,6 +141,12 @@ export default defineComponent({
             unreadMessages.value[groupName]++;
           }
         );
+        await connection.value
+          .invoke("GetUserGroups")
+          .then((groups: string[]) => {
+            console.log("Grupo", groups);
+            userGroups.value = groups;
+          });
 
         await connection.value.invoke("GetOnlineUsers");
       } else {
@@ -146,6 +171,15 @@ export default defineComponent({
       }
     };
 
+    const openGroupChat = (groupName: string) => {
+      router.push({
+        name: "groupChat",
+        query: {
+          groupName,
+        },
+      });
+    };
+
     const openGroupCreation = () => {
       showGroupDialog.value = true;
     };
@@ -156,21 +190,33 @@ export default defineComponent({
       groupName.value = "";
     };
 
-    const createGroup = () => {
+    const createGroup = async () => {
       if (selectedUsers.value.length > 1 && groupName.value.trim()) {
-        router.push({
-          name: "groupChat",
-          query: {
-            users: selectedUsers.value.join(","),
-            groupName: groupName.value,
-          },
-        });
+        try {
+          await connection.value.invoke(
+            "CreateGroup",
+            groupName.value,
+            selectedUsers.value
+          );
+
+          router.push({
+            name: "groupChat",
+            query: {
+              users: selectedUsers.value.join(","),
+              groupName: groupName.value,
+            },
+          });
+
+          closeGroupDialog();
+        } catch (error) {
+          console.error("Erro ao criar grupo:", error);
+          alert("Falha ao criar o grupo.");
+        }
       } else {
         alert(
           "Selecione ao menos dois usuários e insira um nome para o grupo."
         );
       }
-      closeGroupDialog();
     };
 
     return {
@@ -184,6 +230,8 @@ export default defineComponent({
       closeGroupDialog,
       createGroup,
       logout,
+      openGroupChat,
+      userGroups,
       unreadMessages,
     };
   },
@@ -203,7 +251,7 @@ export default defineComponent({
 }
 .unread-badge {
   color: white;
-  background-color: red;
+  background-color: #3091e0;
   padding: 0 5px;
   border-radius: 12px;
   font-size: 12px;

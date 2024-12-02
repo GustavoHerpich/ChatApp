@@ -94,11 +94,11 @@ export default {
         method: "post",
         url: "auth/login",
         data: { username: login, password: password },
-        onSuccess: () => {
+        onSuccess: async () => {
           if (loginReq.response) {
             const token = loginReq.response;
             userStore.saveToken(token);
-            saveUser(login);
+            await saveUser(login);
             router.push({ name: "home" });
           }
         },

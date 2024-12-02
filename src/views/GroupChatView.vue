@@ -60,6 +60,16 @@ export default defineComponent({
 
         await connection.value.start();
 
+        if (connection.value) {
+          connection.value.on(
+            "ReceiveMessage",
+            (sender: string, content: string) => {
+              console.log(`Mensagem recebida: ${sender}: ${content}`);
+              messages.value.push({ sender, content });
+            }
+          );
+        }
+
         await loadGroupHistory();
       }
     };

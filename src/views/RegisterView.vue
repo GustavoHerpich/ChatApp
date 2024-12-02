@@ -99,7 +99,6 @@ export default {
         },
         onSuccess: () => {
           if (registerReq.response) {
-            userStore.saveUser(registerReq.response);
             router.push({ name: "login" });
           }
         },

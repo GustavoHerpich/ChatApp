@@ -45,7 +45,6 @@ export default defineComponent({
     const messages = ref<{ sender: string; content: string }[]>([]);
     const connection = ref<HubConnection | null>(null);
 
-    console.log(route);
     onMounted(async () => {
       const token = localStorage.getItem("token");
       if (token) {
