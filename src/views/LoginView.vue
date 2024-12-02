@@ -64,6 +64,7 @@ import { _chat } from "@/plugins/axios";
 import Token from "@/models/user/Token";
 import Requester from "@/utils/requests/Requester";
 import { extractAxiosErrorMessage } from "@/utils/requests/Request";
+import UserAuthentication from "@/models/user/UserAuthentication";
 
 export default {
   setup() {
@@ -77,6 +78,7 @@ export default {
     const showLoginError = ref(false);
 
     const loginReq = reactive(new Requester<Token>(_chat));
+    const registerReq = reactive(new Requester<UserAuthentication>(_chat));
 
     const rules = {
       required: (value: string) => !!value || "Campo obrigatório",
@@ -96,6 +98,7 @@ export default {
           if (loginReq.response) {
             const token = loginReq.response;
             userStore.saveToken(token);
+            saveUser(login);
             router.push({ name: "home" });
           }
         },
@@ -109,6 +112,18 @@ export default {
     function clearLoginFields() {
       login.value = "";
       password.value = "";
+    }
+
+    async function saveUser(username: string) {
+      await registerReq.request({
+        method: "get",
+        url: "auth/GetUser",
+        params: { username },
+      });
+      if (registerReq.response) {
+        console.log("Salvando usuario:", registerReq.response);
+        await userStore.saveUser(registerReq.response);
+      }
     }
 
     function goToRegister() {
@@ -126,6 +141,7 @@ export default {
       showPassword,
       showLoginError,
       rules,
+      saveUser,
       authenticate,
       goToRegister,
       goToRecoverPassword,

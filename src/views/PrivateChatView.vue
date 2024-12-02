@@ -2,7 +2,7 @@
   <v-container
     class="fill-height d-flex flex-column align-center justify-center"
   >
-    <v-card class="elevation-12" width="500">
+    <v-card class="elevation-12" width="600">
       <v-toolbar color="primary" dark flat>
         <v-toolbar-title>Chat Privado com {{ receiver }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -45,6 +45,7 @@ export default defineComponent({
     const messages = ref<{ sender: string; content: string }[]>([]);
     const connection = ref<HubConnection | null>(null);
 
+    console.log(route);
     onMounted(async () => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -59,6 +60,8 @@ export default defineComponent({
         connection.value.on("ReceivePrivateMessage", (sender, content) => {
           messages.value.push({ sender, content });
         });
+
+        loadChatHistory();
       }
     });
 
@@ -69,8 +72,17 @@ export default defineComponent({
           receiver.value,
           message.value
         );
-        messages.value.push({ sender: "Você", content: message.value });
         message.value = "";
+      }
+    };
+
+    const loadChatHistory = async () => {
+      if (connection.value) {
+        const history = await connection.value.invoke(
+          "GetMessagesForChat",
+          receiver.value
+        );
+        messages.value = history;
       }
     };
 

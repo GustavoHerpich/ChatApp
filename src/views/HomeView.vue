@@ -3,10 +3,13 @@
   <v-container
     class="fill-height d-flex flex-column align-center justify-center"
   >
-    <v-card class="elevation-12" width="400">
+    <v-card class="elevation-12" width="450">
       <v-toolbar color="primary" dark flat>
         <v-toolbar-title>Usuários Online</v-toolbar-title>
         <v-spacer></v-spacer>
+        <v-btn icon @click="logout">
+          <v-icon>mdi-logout</v-icon>
+        </v-btn>
         <v-btn icon @click="openGroupCreation">
           <v-icon>mdi-account-multiple-plus</v-icon>
         </v-btn>
@@ -45,6 +48,11 @@
           <span class="headline">Criar Grupo</span>
         </v-card-title>
         <v-card-text>
+          <v-text-field
+            v-model="groupName"
+            label="Nome do Grupo"
+            required
+          ></v-text-field>
           <v-autocomplete
             v-model="selectedUsers"
             :items="onlineUsers"
@@ -75,6 +83,7 @@ export default defineComponent({
   setup() {
     const onlineUsers = ref<string[]>([]);
     const selectedUsers = ref<string[]>([]);
+    const groupName = ref("");
     const showGroupDialog = ref(false);
     const connection = ref<any>(null);
     const router = useRouter();
@@ -82,6 +91,7 @@ export default defineComponent({
     const unreadMessages = ref<{ [key: string]: number }>({});
 
     const userName = userStore.getUserName();
+    console.log(userName);
 
     onMounted(async () => {
       const token = localStorage.getItem("token");
@@ -98,19 +108,17 @@ export default defineComponent({
           onlineUsers.value = users;
         });
 
-        connection.value.on(
-          "NewConversationNotification",
-          (receiver: string | number) => {
-            notify({
-              title: "Nova Mensagem",
-              text: `Você recebeu uma nova mensagem de ${receiver}`,
-            });
-            if (!unreadMessages.value[receiver]) {
-              unreadMessages.value[receiver] = 0;
-            }
-            unreadMessages.value[receiver]++;
+        connection.value.on("NewConversationNotification", (sender: string) => {
+          console.log("notificate", sender);
+          notify({
+            title: "Nova Mensagem",
+            text: `Você recebeu uma nova mensagem de ${sender}`,
+          });
+          if (!unreadMessages.value[sender]) {
+            unreadMessages.value[sender] = 0;
           }
-        );
+          unreadMessages.value[sender]++;
+        });
 
         await connection.value.invoke("GetOnlineUsers");
       } else {
@@ -123,6 +131,18 @@ export default defineComponent({
       router.push({ name: "privateChat", params: { user } });
     };
 
+    const logout = async () => {
+      try {
+        if (connection.value) {
+          await connection.value.stop();
+        }
+        userStore.logout();
+        await router.push({ name: "login" });
+      } catch (error) {
+        console.error("Erro ao deslogar:", error);
+      }
+    };
+
     const openGroupCreation = () => {
       showGroupDialog.value = true;
     };
@@ -130,16 +150,22 @@ export default defineComponent({
     const closeGroupDialog = () => {
       showGroupDialog.value = false;
       selectedUsers.value = [];
+      groupName.value = "";
     };
 
     const createGroup = () => {
-      if (selectedUsers.value.length > 1) {
+      if (selectedUsers.value.length > 1 && groupName.value.trim()) {
         router.push({
           name: "groupChat",
-          params: { users: selectedUsers.value },
+          query: {
+            users: selectedUsers.value.join(","),
+            groupName: groupName.value,
+          },
         });
       } else {
-        alert("Selecione ao menos dois usuários para criar um grupo.");
+        alert(
+          "Selecione ao menos dois usuários e insira um nome para o grupo."
+        );
       }
       closeGroupDialog();
     };
@@ -150,9 +176,11 @@ export default defineComponent({
       startPrivateChat,
       showGroupDialog,
       selectedUsers,
+      groupName, // Expondo a variável do nome do grupo
       openGroupCreation,
       closeGroupDialog,
       createGroup,
+      logout,
       unreadMessages,
     };
   },

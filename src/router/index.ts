@@ -26,11 +26,16 @@ const routes = [
     path: "/group-chat",
     name: "groupChat",
     component: GroupChat,
+    props: (route: { query: { users: string; groupName: any } }) => ({
+      users: route.query.users ? route.query.users.split(",") : [],
+      groupName: route.query.groupName || "",
+    }),
   },
   {
-    path: "/private-chat",
+    path: "/private-chat/:user",
     name: "privateChat",
     component: PrivateChat,
+    props: true,
   },
   {
     path: "/recover-password",

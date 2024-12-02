@@ -4,7 +4,7 @@
   >
     <v-card class="elevation-12" width="500">
       <v-toolbar color="primary" dark flat>
-        <v-toolbar-title>Chat em Grupo</v-toolbar-title>
+        <v-toolbar-title>{{ groupName }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon @click="goBack">
           <v-icon>mdi-arrow-left</v-icon>
@@ -41,11 +41,16 @@ export default defineComponent({
     const message = ref("");
     const messages = ref<{ sender: string; content: string }[]>([]);
     const connection = ref<HubConnection | null>(null);
+    const groupName = ref("");
+    const groupParticipants = ref<string[]>([]);
     const router = useRouter();
 
-    onMounted(async () => {
-      const token = localStorage.getItem("token");
+    const route = router.currentRoute.value;
+    groupName.value = (route.query.groupName as string) || "Nome do Grupo";
+    groupParticipants.value = ((route.query.users as string) || "").split(",");
 
+    const createGroup = async () => {
+      const token = localStorage.getItem("token");
       if (token) {
         connection.value = new HubConnectionBuilder()
           .withUrl("http://localhost:8080/chathub", {
@@ -56,15 +61,31 @@ export default defineComponent({
         await connection.value.start();
 
         connection.value.on("ReceiveMessage", (sender, content) => {
-          messages.value.push({ sender, content });
+          if (groupParticipants.value.includes(sender)) {
+            messages.value.push({ sender, content });
+          }
         });
+
+        await connection.value.invoke(
+          "SendMessageToGroup",
+          "Grupo criado!",
+          groupParticipants.value,
+          groupName.value
+        );
       }
+    };
+
+    onMounted(() => {
+      createGroup();
     });
 
     const sendMessage = async () => {
       if (message.value.trim() && connection.value) {
-        await connection.value.invoke("SendMessage", message.value);
-        messages.value.push({ sender: "Você", content: message.value });
+        await connection.value.invoke(
+          "SendMessageToGroup",
+          message.value,
+          groupParticipants.value
+        );
         message.value = "";
       }
     };
@@ -78,6 +99,7 @@ export default defineComponent({
       messages,
       sendMessage,
       goBack,
+      groupName,
     };
   },
 });
