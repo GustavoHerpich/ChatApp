@@ -60,31 +60,26 @@ export default defineComponent({
 
         await connection.value.start();
 
-        connection.value.on("ReceiveMessage", (sender, content) => {
-          if (groupParticipants.value.includes(sender)) {
-            messages.value.push({ sender, content });
-          }
-        });
-
-        await connection.value.invoke(
-          "SendMessageToGroup",
-          "Grupo criado!",
-          groupParticipants.value,
+        await loadGroupHistory();
+      }
+    };
+    const loadGroupHistory = async () => {
+      if (connection.value) {
+        const history = await connection.value.invoke(
+          "GetMessagesForChat",
           groupName.value
         );
+        messages.value = history;
       }
     };
 
-    onMounted(() => {
-      createGroup();
-    });
-
     const sendMessage = async () => {
       if (message.value.trim() && connection.value) {
-        await connection.value.invoke(
+        await connection.value?.invoke(
           "SendMessageToGroup",
           message.value,
-          groupParticipants.value
+          groupParticipants.value,
+          groupName.value
         );
         message.value = "";
       }
@@ -94,19 +89,18 @@ export default defineComponent({
       router.push({ name: "home" });
     };
 
+    onMounted(() => {
+      createGroup();
+    });
+
     return {
       message,
       messages,
       sendMessage,
-      goBack,
       groupName,
+      groupParticipants,
+      goBack,
     };
   },
 });
 </script>
-
-<style scoped>
-.fill-height {
-  height: 100vh;
-}
-</style>

@@ -27,17 +27,6 @@
             required
           ></v-text-field>
 
-          <v-select
-            v-model="role"
-            :items="roles"
-            item-text="text"
-            item-value="value"
-            label="Função"
-            :rules="[rules.required]"
-            outlined
-            required
-          ></v-select>
-
           <v-alert
             v-if="showRegisterError"
             type="error"
@@ -89,10 +78,8 @@ export default {
     const validForm = ref(false);
     const username = ref("");
     const password = ref("");
-    const role = ref("");
     const showPassword = ref(false);
     const showRegisterError = ref(false);
-    const roles = ["Admin", "User"];
 
     const registerReq = reactive(new Requester<UserAuthentication>(_chat));
 
@@ -103,15 +90,12 @@ export default {
     async function registerUser(): Promise<void> {
       showRegisterError.value = false;
 
-      const roleValue = role.value === "Admin" ? 1 : 0;
-
       await registerReq.request({
         method: "post",
         url: "auth/register",
         data: {
           username: username.value,
           password: password.value,
-          role: roleValue,
         },
         onSuccess: () => {
           if (registerReq.response) {
@@ -146,8 +130,6 @@ export default {
       showPassword,
       showRegisterError,
       rules,
-      role,
-      roles,
       registerUser,
       goToLogin,
       goToRecoverPassword,

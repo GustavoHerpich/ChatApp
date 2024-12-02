@@ -24,12 +24,12 @@
               class="online-user-item"
             >
               <v-list-item-content>
-                <v-list-item-title>{{ user }}</v-list-item-title>
-                <v-badge
-                  v-if="unreadMessages[user]"
-                  color="primary"
-                  dot
-                ></v-badge>
+                <v-list-item-title>
+                  {{ user }}
+                  <span v-if="unreadMessages[user]" class="unread-badge">
+                    ({{ unreadMessages[user] }})
+                  </span>
+                </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
@@ -77,7 +77,6 @@ import { defineComponent, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { HubConnectionBuilder } from "@aspnet/signalr";
 import { useUsers } from "@/stores/user";
-import { notify } from "notiwind";
 
 export default defineComponent({
   setup() {
@@ -91,7 +90,6 @@ export default defineComponent({
     const unreadMessages = ref<{ [key: string]: number }>({});
 
     const userName = userStore.getUserName();
-    console.log(userName);
 
     onMounted(async () => {
       const token = localStorage.getItem("token");
@@ -105,20 +103,25 @@ export default defineComponent({
         await connection.value.start();
 
         connection.value.on("OnlineUsers", (users: string[]) => {
-          onlineUsers.value = users;
+          onlineUsers.value = users.filter((user) => user !== userName);
         });
 
         connection.value.on("NewConversationNotification", (sender: string) => {
-          console.log("notificate", sender);
-          notify({
-            title: "Nova Mensagem",
-            text: `Você recebeu uma nova mensagem de ${sender}`,
-          });
           if (!unreadMessages.value[sender]) {
             unreadMessages.value[sender] = 0;
           }
           unreadMessages.value[sender]++;
         });
+
+        connection.value.on(
+          "NewGroupMessageNotification",
+          (groupName: string) => {
+            if (!unreadMessages.value[groupName]) {
+              unreadMessages.value[groupName] = 0;
+            }
+            unreadMessages.value[groupName]++;
+          }
+        );
 
         await connection.value.invoke("GetOnlineUsers");
       } else {
@@ -176,7 +179,7 @@ export default defineComponent({
       startPrivateChat,
       showGroupDialog,
       selectedUsers,
-      groupName, // Expondo a variável do nome do grupo
+      groupName,
       openGroupCreation,
       closeGroupDialog,
       createGroup,
@@ -197,5 +200,13 @@ export default defineComponent({
 }
 .online-user-item:hover {
   background-color: rgba(0, 0, 0, 0.1);
+}
+.unread-badge {
+  color: white;
+  background-color: red;
+  padding: 0 5px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-left: 5px;
 }
 </style>

@@ -3,8 +3,7 @@ class UserAuthentication {
     public id: number,
     public username: string,
     public password: string,
-    public passwordExpiration: string,
-    public role: number
+    public passwordExpiration: string
   ) {}
 }
 
