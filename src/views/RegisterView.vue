@@ -64,7 +64,6 @@
 <script lang="ts">
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useUsers } from "@/stores/user";
 import { _chat } from "@/plugins/axios";
 import Requester from "@/utils/requests/Requester";
 import { extractAxiosErrorMessage } from "@/utils/requests/Request";
@@ -73,7 +72,6 @@ import UserAuthentication from "@/models/user/UserAuthentication";
 export default {
   setup() {
     const router = useRouter();
-    const userStore = useUsers();
 
     const validForm = ref(false);
     const username = ref("");

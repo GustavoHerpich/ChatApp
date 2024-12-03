@@ -54,7 +54,12 @@
               @click="openGroupChat(group)"
             >
               <v-list-item-content>
-                <v-list-item-title>{{ group }}</v-list-item-title>
+                <v-list-item-title>
+                  {{ group }}
+                  <span v-if="unreadMessages[group]" class="unread-badge">
+                    {{ unreadMessages[group] }}
+                  </span>
+                </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
@@ -125,8 +130,12 @@ export default defineComponent({
           onlineUsers.value = users.filter((user) => user !== userName);
         });
 
-        connection.value.on("GroupsCreated", (groups: string[]) => {
-          userGroups.value = groups;
+        connection.value.on("GroupCreated", (groups: any[]) => {
+          groups.forEach((group: any) => {
+            if (!userGroups.value.includes(group.groupName)) {
+              userGroups.value.push(group.groupName);
+            }
+          });
         });
 
         connection.value.on("NewConversationNotification", (sender: string) => {
@@ -191,7 +200,6 @@ export default defineComponent({
     const createGroup = async () => {
       if (groupName.value.trim()) {
         const members = [...selectedUsers.value, userName];
-        console.log(members);
         try {
           if (members.length > 1) {
             await connection.value.invoke(
@@ -199,7 +207,7 @@ export default defineComponent({
               groupName.value,
               members
             );
-
+            await connection.value.invoke("GetGroups");
             router.push({
               name: "groupChat",
               query: {

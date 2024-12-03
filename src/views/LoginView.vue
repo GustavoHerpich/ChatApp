@@ -121,7 +121,6 @@ export default {
         params: { username },
       });
       if (registerReq.response) {
-        console.log("Salvando usuario:", registerReq.response);
         await userStore.saveUser(registerReq.response);
       }
     }

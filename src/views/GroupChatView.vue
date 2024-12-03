@@ -64,7 +64,6 @@ export default defineComponent({
           connection.value.on(
             "ReceiveMessage",
             (sender: string, content: string) => {
-              console.log(`Mensagem recebida: ${sender}: ${content}`);
               messages.value.push({ sender, content });
             }
           );
@@ -79,21 +78,15 @@ export default defineComponent({
           "GetMessagesForGroup",
           groupName.value
         );
-        console.log("historico de msg", history);
         messages.value = history;
       }
     };
 
     const sendMessage = async () => {
       if (message.value.trim() && connection.value) {
-        console.log(
-          "Grupo participante tamanho",
-          groupParticipants.value.length
-        );
         if (groupParticipants.value.length === 1) {
           await loadGroupParticipants();
         }
-        console.log("Grupo participante", groupParticipants.value);
 
         await connection.value?.invoke(
           "SendMessageToGroup",
@@ -111,7 +104,6 @@ export default defineComponent({
           "GetParticipantsForGroup",
           groupName.value
         );
-        console.log(participants);
         groupParticipants.value = participants;
       }
     };
