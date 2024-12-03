@@ -143,6 +143,10 @@ export default defineComponent({
             unreadMessages.value[sender] = 0;
           }
           unreadMessages.value[sender]++;
+          console.log(
+            "Estado atual de unreadMessages após incremento:",
+            unreadMessages.value
+          );
         });
 
         connection.value.on(
@@ -152,6 +156,10 @@ export default defineComponent({
               unreadMessages.value[groupName] = 0;
             }
             unreadMessages.value[groupName]++;
+            console.log(
+              "Estado atual de unreadMessages após incremento do grupo:",
+              unreadMessages.value
+            );
           }
         );
         await connection.value.invoke("GetGroups");
@@ -179,6 +187,7 @@ export default defineComponent({
     };
 
     const openGroupChat = (groupName: string) => {
+      unreadMessages.value[groupName] = 0;
       router.push({
         name: "groupChat",
         query: {

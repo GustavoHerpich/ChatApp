@@ -14,9 +14,19 @@
         <v-list>
           <v-list-item v-for="(msg, index) in messages" :key="index">
             <v-list-item-content>
-              <v-list-item-title>
-                <strong>{{ msg.sender }}:</strong> {{ msg.content }}
-              </v-list-item-title>
+              <div
+                :class="[
+                  'message-container',
+                  {
+                    'message-left': msg.sender !== receiver,
+                    'message-right': msg.sender === receiver,
+                  },
+                ]"
+              >
+                <div class="message-content">
+                  <strong>{{ msg.sender }}:</strong> {{ msg.content }}
+                </div>
+              </div>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -103,5 +113,36 @@ export default defineComponent({
 <style scoped>
 .fill-height {
   height: 100vh;
+}
+</style>
+<style>
+.message-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.message-left {
+  justify-content: flex-start;
+}
+
+.message-right {
+  justify-content: flex-end;
+}
+
+.message-content {
+  max-width: 60%;
+  word-wrap: break-word;
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.message-left .message-content {
+  background-color: #e0e0e0;
+}
+
+.message-right .message-content {
+  background-color: #007bff;
+  color: white;
 }
 </style>
