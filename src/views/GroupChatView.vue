@@ -76,15 +76,25 @@ export default defineComponent({
     const loadGroupHistory = async () => {
       if (connection.value) {
         const history = await connection.value.invoke(
-          "GetMessagesForChat",
+          "GetMessagesForGroup",
           groupName.value
         );
+        console.log("historico de msg", history);
         messages.value = history;
       }
     };
 
     const sendMessage = async () => {
       if (message.value.trim() && connection.value) {
+        console.log(
+          "Grupo participante tamanho",
+          groupParticipants.value.length
+        );
+        if (groupParticipants.value.length === 1) {
+          await loadGroupParticipants();
+        }
+        console.log("Grupo participante", groupParticipants.value);
+
         await connection.value?.invoke(
           "SendMessageToGroup",
           message.value,
@@ -92,6 +102,17 @@ export default defineComponent({
           groupName.value
         );
         message.value = "";
+      }
+    };
+
+    const loadGroupParticipants = async () => {
+      if (connection.value) {
+        const participants = await connection.value.invoke(
+          "GetParticipantsForGroup",
+          groupName.value
+        );
+        console.log(participants);
+        groupParticipants.value = participants;
       }
     };
 
@@ -109,6 +130,7 @@ export default defineComponent({
       sendMessage,
       groupName,
       groupParticipants,
+      loadGroupParticipants,
       goBack,
     };
   },

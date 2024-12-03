@@ -125,6 +125,10 @@ export default defineComponent({
           onlineUsers.value = users.filter((user) => user !== userName);
         });
 
+        connection.value.on("GroupsCreated", (groups: string[]) => {
+          userGroups.value = groups;
+        });
+
         connection.value.on("NewConversationNotification", (sender: string) => {
           if (!unreadMessages.value[sender]) {
             unreadMessages.value[sender] = 0;
@@ -141,13 +145,7 @@ export default defineComponent({
             unreadMessages.value[groupName]++;
           }
         );
-        await connection.value
-          .invoke("GetUserGroups")
-          .then((groups: string[]) => {
-            console.log("Grupo", groups);
-            userGroups.value = groups;
-          });
-
+        await connection.value.invoke("GetGroups");
         await connection.value.invoke("GetOnlineUsers");
       } else {
         console.error("Token de autenticação não encontrado no localStorage.");
@@ -191,31 +189,34 @@ export default defineComponent({
     };
 
     const createGroup = async () => {
-      if (selectedUsers.value.length > 1 && groupName.value.trim()) {
+      if (groupName.value.trim()) {
+        const members = [...selectedUsers.value, userName];
+        console.log(members);
         try {
-          await connection.value.invoke(
-            "CreateGroup",
-            groupName.value,
-            selectedUsers.value
-          );
+          if (members.length > 1) {
+            await connection.value.invoke(
+              "CreateGroup",
+              groupName.value,
+              members
+            );
 
-          router.push({
-            name: "groupChat",
-            query: {
-              users: selectedUsers.value.join(","),
-              groupName: groupName.value,
-            },
-          });
-
-          closeGroupDialog();
+            router.push({
+              name: "groupChat",
+              query: {
+                users: members.join(","),
+                groupName: groupName.value,
+              },
+            });
+            closeGroupDialog();
+          } else {
+            alert("O grupo deve ter pelo menos dois membros.");
+          }
         } catch (error) {
           console.error("Erro ao criar grupo:", error);
           alert("Falha ao criar o grupo.");
         }
       } else {
-        alert(
-          "Selecione ao menos dois usuários e insira um nome para o grupo."
-        );
+        alert("Insira um nome para o grupo.");
       }
     };
 
